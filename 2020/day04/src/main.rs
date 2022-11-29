@@ -26,6 +26,16 @@ fn main() -> Result<()> {
 
     println!("{}", count);
 
+    let mut count = 0;
+
+    for ppd in &passport_data {
+        if validate_passport_data_b(ppd) {
+            count += 1;
+        }
+    }
+
+    println!("{}", count);
+
     Ok(())
 }
 
@@ -83,6 +93,113 @@ fn validate_passport_data_a(input: &str) -> bool {
     }
 
     true
+}
+
+fn validate_passport_data_b(input: &str) -> bool {
+    // cid left out
+    let valid_keys = vec!["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"];
+
+    let pieces = input.split_ascii_whitespace().collect::<Vec<&str>>();
+
+    // need at least this many keys
+    if pieces.len() < valid_keys.len() {
+        return false;
+    }
+
+    for valid_key in &valid_keys {
+        let mut found = false;
+        for piece in &pieces {
+            if piece.starts_with(valid_key) {
+                found = true;
+                break;
+            }
+        }
+
+        if !found {
+            return false;
+        }
+    }
+
+    for piece in &pieces {
+        let kvp: Vec<&str> = piece.splitn(2, ":").collect();
+
+        let result = match kvp[0] {
+            "byr" => validate_byr(kvp[1]),
+            "ecl" => validate_ecl(kvp[1]),
+            "eyr" => validate_eyr(kvp[1]),
+            "hcl" => validate_hcl(kvp[1]),
+            "hgt" => validate_hgt(kvp[1]),
+            "iyr" => validate_iyr(kvp[1]),
+            "pid" => validate_pid(kvp[1]),
+            _ => true,
+        };
+
+        if !result {
+            return false;
+        }
+    }
+
+    true
+}
+
+fn validate_byr(input: &str) -> bool {
+    let birth_year: u32 = input.parse().unwrap();
+    birth_year >= 1920 && birth_year <= 2002
+}
+
+fn validate_ecl(input: &str) -> bool {
+    let count = ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]
+        .iter()
+        .filter(|x| x.eq(&&input))
+        .count();
+
+    count > 0
+}
+
+fn validate_eyr(input: &str) -> bool {
+    let expire_year: u32 = input.parse().unwrap();
+
+    expire_year >= 2020 && expire_year <= 2030
+}
+
+fn validate_hcl(input: &str) -> bool {
+    if !input.starts_with("#") {
+        return false;
+    }
+
+    let check = input.trim_start_matches("#");
+
+    if check.len() != 6 {
+        return false;
+    }
+
+    check.chars().all(char::is_alphanumeric)
+}
+
+fn validate_hgt(input: &str) -> bool {
+    if input.ends_with("cm") {
+        let in_cm: u32 = input.trim_end_matches("cm").parse().unwrap();
+
+        return in_cm >= 150 && in_cm <= 193;
+    }
+
+    if input.ends_with("in") {
+        let in_in: u32 = input.trim_end_matches("in").parse().unwrap();
+
+        return in_in >= 59 && in_in <= 76;
+    }
+
+    false
+}
+
+fn validate_iyr(input: &str) -> bool {
+    let issue_year: u32 = input.parse().unwrap();
+
+    issue_year >= 2010 && issue_year <= 2020
+}
+
+fn validate_pid(input: &str) -> bool {
+    input.len() == 9 && input.chars().all(char::is_numeric)
 }
 
 #[cfg(test)]
