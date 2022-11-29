@@ -1,35 +1,28 @@
-use std::{
-    env,
-    fs::File,
-    io::{BufRead, BufReader},
-};
+use std::env;
+use utility::{format_err, get_file_as_vec_string, Result};
 
-fn main() -> anyhow::Result<()> {
+fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
 
     if args.len() != 2 {
-        return Err(anyhow::anyhow!(
+        return Err(format_err!(
             "need to pass input text path as first argument"
         ));
     }
 
-    let input_file = File::open(&args[1])?;
-    let reader = BufReader::new(input_file);
+    let contents = get_file_as_vec_string(&args[1])?;
 
-    let result = reader
-        .lines()
-        .map(|l| check_password_1(&l.unwrap_or_default()).unwrap())
+    let result = contents
+        .iter()
+        .map(|l| check_password_1(l).unwrap_or(false))
         .filter(|l| *l)
         .count();
 
     println!("{}", result);
 
-    let input_file = File::open(&args[1])?;
-    let reader = BufReader::new(input_file);
-
-    let result = reader
-        .lines()
-        .map(|l| check_password_2(&l.unwrap_or_default()).unwrap())
+    let result = contents
+        .iter()
+        .map(|l| check_password_2(l).unwrap_or(false))
         .filter(|l| *l)
         .count();
 
@@ -38,11 +31,11 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn check_password_1(input: &str) -> anyhow::Result<bool> {
+fn check_password_1(input: &str) -> Result<bool> {
     let parts: Vec<&str> = input.split_ascii_whitespace().collect();
 
     if parts.len() != 3 {
-        return Err(anyhow::anyhow!("must be 3 parts, got {}", parts.len()));
+        return Err(format_err!("must be 3 parts, got {}", parts.len()));
     }
 
     let counts: Vec<u32> = parts[0]
@@ -51,13 +44,13 @@ fn check_password_1(input: &str) -> anyhow::Result<bool> {
         .collect();
 
     if counts.len() != 2 {
-        return Err(anyhow::anyhow!("must be 2 counts, got {}", counts.len()));
+        return Err(format_err!("must be 2 counts, got {}", counts.len()));
     }
 
     let letter = parts[1].replace(':', "");
 
     if letter.len() != 1 {
-        return Err(anyhow::anyhow!("must be 1 letter, got {}", letter.len()));
+        return Err(format_err!("must be 1 letter, got {}", letter.len()));
     }
 
     let check = parts[2].matches(&letter).count() as u32;
@@ -67,11 +60,11 @@ fn check_password_1(input: &str) -> anyhow::Result<bool> {
     Ok(result)
 }
 
-fn check_password_2(input: &str) -> anyhow::Result<bool> {
+fn check_password_2(input: &str) -> Result<bool> {
     let parts: Vec<&str> = input.split_ascii_whitespace().collect();
 
     if parts.len() != 3 {
-        return Err(anyhow::anyhow!("must be 3 parts, got {}", parts.len()));
+        return Err(format_err!("must be 3 parts, got {}", parts.len()));
     }
 
     let counts: Vec<u32> = parts[0]
@@ -80,11 +73,11 @@ fn check_password_2(input: &str) -> anyhow::Result<bool> {
         .collect();
 
     if counts.len() != 2 {
-        return Err(anyhow::anyhow!("must be 2 counts, got {}", counts.len()));
+        return Err(format_err!("must be 2 counts, got {}", counts.len()));
     }
 
     if parts[2].len() < counts[1].try_into().unwrap() {
-        return Err(anyhow::anyhow!(
+        return Err(format_err!(
             "string too short {} {}",
             parts[2].len(),
             counts[1]
@@ -92,7 +85,7 @@ fn check_password_2(input: &str) -> anyhow::Result<bool> {
     }
 
     if counts[0] < 1 || counts[1] < 1 {
-        return Err(anyhow::anyhow!(
+        return Err(format_err!(
             "cannot have 0 indexing, all indexing starts at 1"
         ));
     }
@@ -100,7 +93,7 @@ fn check_password_2(input: &str) -> anyhow::Result<bool> {
     let letter = parts[1].replace(':', "");
 
     if letter.len() != 1 {
-        return Err(anyhow::anyhow!("must be 1 letter, got {}", letter.len()));
+        return Err(format_err!("must be 1 letter, got {}", letter.len()));
     }
 
     let letter_char = letter.chars().nth(0).unwrap();
@@ -117,6 +110,7 @@ fn check_password_2(input: &str) -> anyhow::Result<bool> {
     Ok(result)
 }
 
+#[cfg(test)]
 mod tests {
     use crate::{check_password_1, check_password_2};
 
