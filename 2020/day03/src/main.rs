@@ -94,30 +94,24 @@ fn count_trees_b(board: &[String], down: usize, right: usize) -> u32 {
     let board_length = board.len();
     let line_length = board[0].len();
 
-    let mut state = StateA {
-        width: 0,
-        tree_count: 0,
-    };
+    let mut height: usize = down;
+    let mut width: usize = right;
+    let mut tree_count: u32 = 0;
 
-    for idx in (0..board_length).step_by(down) {
-        //     println!("{}", idx);
+    while height < board_length {
+        let x = board[height].chars().nth(width).unwrap();
 
-        state.width += right;
-
-        if state.width >= line_length {
-            state.width -= line_length;
+        if x == '#' {
+            tree_count += 1;
         }
 
-        if idx + 1 >= board.len() {
-            continue;
-        }
+        height += down;
 
-        let check = board[idx + 1].chars().nth(state.width).unwrap();
-
-        if check == '#' {
-            state.tree_count += 1;
+        width += right;
+        if width >= line_length {
+            width -= line_length;
         }
     }
 
-    return state.tree_count;
+    return tree_count;
 }
