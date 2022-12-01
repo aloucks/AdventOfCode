@@ -1,60 +1,44 @@
-use std::{env, fs};
-use utility::format_err;
+use std::fs;
+use utility::get_input_path;
 use utility::Result;
 
 fn main() -> Result<()> {
-    let args: Vec<String> = env::args().collect();
+    let input_file = get_input_path()?;
 
-    if args.len() != 2 {
-        return Err(format_err!(
-            "need to pass input text path as first argument"
-        ));
-    }
+    let input = fs::read_to_string(input_file)?;
 
-    let input = fs::read_to_string(&args[1])?;
+    let result = count_calories(&input);
 
-    let mut result = count_calories(&input);
+    println!("Max Calories: {}", result[0]);
 
-    result.sort();
+    let top_three = (&result[0..3]).iter().sum::<u32>();
 
-    let max = result.iter().max();
-    println!("{:?}", max);
-
-    let r_len = result.len();
-
-    let top_3 = result[r_len - 1] + result[r_len - 2] + result[r_len - 3];
-    println!("{:?}", result);
-
-    println!("{}", top_3);
+    println!("Top 3 Max Calories: {}", top_three);
 
     Ok(())
 }
 
 fn count_calories(input: &str) -> Vec<u32> {
-    let mut result_1: Vec<Vec<u32>> = vec![];
-    let mut inter: Vec<u32> = vec![];
+    let elf_delim = if input.contains("\r\n\r\n") {
+        "\r\n\r\n"
+    } else {
+        "\n\n"
+    };
 
-    for line in input.lines() {
-        if line.trim().is_empty() {
-            if inter.is_empty() {
-                continue;
-            }
+    let snack_delim = if input.contains("\r\n") { "\r\n" } else { "\n" };
 
-            result_1.push(inter.clone());
-            inter = vec![];
-            continue;
-        }
+    let mut calories: Vec<u32> = input
+        .trim()
+        .split(elf_delim)
+        .into_iter()
+        .map(|e| {
+            e.split(snack_delim)
+                .map(|s| s.parse::<u32>().unwrap())
+                .sum()
+        })
+        .collect();
 
-        inter.push(line.parse().unwrap());
-    }
+    calories.sort_by(|a, b| b.cmp(a));
 
-    // push remaining data
-    if !inter.is_empty() {
-        result_1.push(inter.clone());
-    }
-
-    result_1
-        .iter()
-        .map(|e| e.iter().sum::<u32>())
-        .collect::<Vec<u32>>()
+    calories
 }
