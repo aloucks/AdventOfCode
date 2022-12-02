@@ -21,6 +21,18 @@ pub fn get_file_as_vec_string(filename: &str) -> Result<Vec<String>> {
     Ok(reader)
 }
 
+pub fn get_file_delimiters(input: &str) -> (&'static str, &'static str) {
+    let group_delim = if input.contains("\r\n\r\n") {
+        "\r\n\r\n"
+    } else {
+        "\n\n"
+    };
+
+    let line_delim = if input.contains("\r\n") { "\r\n" } else { "\n" };
+
+    (line_delim, group_delim)
+}
+
 pub fn get_input_path() -> Result<String> {
     let args: Vec<String> = env::args().collect();
 
