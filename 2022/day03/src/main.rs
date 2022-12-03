@@ -1,5 +1,3 @@
-const letters: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
 fn main() -> utility::Result<()> {
     let input_file = utility::get_input_path()?;
     let input_contents = utility::get_file_as_vec_string(&input_file)?;
@@ -8,11 +6,7 @@ fn main() -> utility::Result<()> {
 
     println!("{}", priority_sum);
 
-    let mut priority_sum = 0;
-    for (idx, _) in input_contents.iter().enumerate().step_by(3) {
-        let end = idx + 3;
-        priority_sum += find_priority_2(&input_contents[idx..end]);
-    }
+    let priority_sum: u32 = input_contents.chunks(3).map(|c| find_priority_2(c)).sum();
 
     println!("{}", priority_sum);
 
@@ -32,11 +26,10 @@ fn find_priority(input: &str) -> u32 {
         }
     }
 
-    (letters.find(item).unwrap() + 1) as u32
+    get_priority(item) as u32
 }
 
 fn find_priority_2(input: &[String]) -> u32 {
-    println!("{:?}", input);
     let mut item: char = '_';
 
     for c in input[0].chars() {
@@ -46,7 +39,15 @@ fn find_priority_2(input: &[String]) -> u32 {
         }
     }
 
-    println!("{}", item);
+    get_priority(item) as u32
+}
 
-    (letters.find(item).unwrap() + 1) as u32
+fn get_priority(item: char) -> u32 {
+    let item = item as u8;
+
+    match item {
+        result if (b'a'..=b'z').contains(&item) => (result - b'a' + 1).into(),
+        result if (b'A'..=b'Z').contains(&item) => (result - b'A' + 27).into(),
+        _ => panic!("must be a-z or A-Z only"),
+    }
 }
