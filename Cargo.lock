@@ -9,42 +9,63 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "216261ddc8289130e551ddcd5ce8a064710c0d064a4d2895c67151c92b5443f6"
 
 [[package]]
-name = "day01"
+name = "day01-2020"
 version = "0.1.0"
 dependencies = [
  "utility",
 ]
 
 [[package]]
-name = "day02"
+name = "day01-2022"
 version = "0.1.0"
 dependencies = [
  "utility",
 ]
 
 [[package]]
-name = "day03"
+name = "day02-2020"
 version = "0.1.0"
 dependencies = [
  "utility",
 ]
 
 [[package]]
-name = "day04"
+name = "day02-2022"
 version = "0.1.0"
 dependencies = [
  "utility",
 ]
 
 [[package]]
-name = "day06"
+name = "day03-2020"
 version = "0.1.0"
 dependencies = [
  "utility",
 ]
 
 [[package]]
-name = "day07"
+name = "day03-2022"
+version = "0.1.0"
+dependencies = [
+ "utility",
+]
+
+[[package]]
+name = "day04-2020"
+version = "0.1.0"
+dependencies = [
+ "utility",
+]
+
+[[package]]
+name = "day06-2020"
+version = "0.1.0"
+dependencies = [
+ "utility",
+]
+
+[[package]]
+name = "day07-2020"
 version = "0.1.0"
 dependencies = [
  "utility",
