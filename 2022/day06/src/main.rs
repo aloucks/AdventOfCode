@@ -1,54 +1,31 @@
-use std::fs;
-
 use itertools::Itertools;
+use std::fs;
 
 fn main() -> utility::Result<()> {
     let input_path = utility::get_input_path()?;
     let input_data = fs::read_to_string(&input_path)?;
 
-    parse_1(&input_data);
-    parse_2(&input_data);
+    parse(&input_data, 4);
+    parse(&input_data, 14);
     Ok(())
 }
 
-fn parse_1(input: &str) {
-    input.lines().for_each(|l| {
-        let r = parse_line_1(l);
-        println!("{}", r);
-    })
+fn parse(input: &str, width: usize) {
+    input.lines().enumerate().for_each(|(i, l)| {
+        let chars_to_start = parse_line(l, width);
+        println!(
+            "Line: {}, Width: {}, Chars to Start: {}",
+            i, width, chars_to_start
+        );
+    });
 }
 
-fn parse_line_1(line: &str) -> usize {
+fn parse_line(line: &str, width: usize) -> usize {
     for idx in 0..line.len() {
-        let marker = &line[idx..idx + 4];
-        if check_marker_dupe_1(marker) {
-            return idx + 4;
+        let marker = &line[idx..idx + width];
+        if marker.chars().all_unique() {
+            return idx + width;
         }
     }
     0
-}
-
-fn check_marker_dupe_1(marker: &str) -> bool {
-    marker.chars().sorted().dedup().count() == 4
-}
-
-fn parse_2(input: &str) {
-    input.lines().for_each(|l| {
-        let r = parse_line_2(l);
-        println!("{}", r);
-    })
-}
-
-fn parse_line_2(line: &str) -> usize {
-    for idx in 0..line.len() {
-        let marker = &line[idx..idx + 14];
-        if check_marker_dupe_2(marker) {
-            return idx + 14;
-        }
-    }
-    0
-}
-
-fn check_marker_dupe_2(marker: &str) -> bool {
-    marker.chars().sorted().dedup().count() == 14
 }

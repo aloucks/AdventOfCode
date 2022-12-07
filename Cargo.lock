@@ -79,7 +79,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "day06-utilityxx"
+name = "day06-2022"
 version = "0.1.0"
 dependencies = [
  "itertools",
