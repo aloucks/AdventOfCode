@@ -3,23 +3,73 @@ use std::{collections::HashMap, fs::read_to_string};
 
 fn main() -> utility::Result<()> {
     let input_path = utility::get_input_path()?;
-    //let input_data = utility::get_file_as_vec_string(&input_path)?;
-    // parse_2(&input_data);
+    let input_data = utility::get_file_as_vec_string(&input_path)?;
+
+    parse_2(&input_data);
 
     let input_contents = read_to_string(&input_path)?;
-
-    parse_3(&input_contents);
+    //parse_3(&input_contents);
 
     Ok(())
 }
 
 fn parse_3(input: &str) {
+    let mut current_directory = String::new();
+
     let commands: Vec<Vec<&str>> = input
         .split('$')
         .skip(1)
         .map(|c| c.trim().split('\n').collect::<Vec<&str>>())
         .collect();
-    println!("{:#?}", commands);
+
+    commands.iter().for_each(|c| {
+        let command = c[0].trim();
+
+        if command.starts_with("cd") {
+            println!("previous_directory: {}", &current_directory);
+
+            if command == "cd .." {
+                current_directory = previous_directory(&current_directory);
+            } else {
+                current_directory = new_directory(command, &current_directory);
+            }
+
+            println!("current_directory: {}", &current_directory);
+        }
+    });
+
+    // println!("{:#?}", commands2);
+}
+
+fn new_directory(input: &str, current_directory: &str) -> String {
+    let dir = input.split(' ').nth(1).unwrap();
+
+    if current_directory.is_empty() && dir == "/" {
+        return String::from("/");
+    }
+
+    let mut current_directory = current_directory;
+
+    if current_directory == "/" {
+        current_directory = "";
+    }
+
+    let mut result = String::from(current_directory);
+    result.push_str("/");
+    result.push_str(dir);
+
+    result
+}
+
+fn previous_directory(current_directory: &str) -> String {
+    let parts = current_directory.trim().split("/").collect::<Vec<&str>>();
+    let result = parts[0..parts.len() - 1].join("/");
+
+    if result.is_empty() {
+        return String::from("/");
+    }
+
+    result
 }
 
 fn parse_1(input: &Vec<String>) {
@@ -114,25 +164,14 @@ fn parse_2(input: &Vec<String>) {
                         cur_files.clear();
                     }
 
-                    let parts = cur_dir.split("/").collect::<Vec<&str>>();
-                    cur_dir = parts[0..parts.len() - 1].join("/");
-
-                    if cur_dir == "" {
-                        cur_dir = String::from("/");
-                    }
+                    cur_dir = previous_directory(&cur_dir);
                 } else {
                     tree.entry(cur_dir.clone())
                         .or_insert(Vec::new())
                         .extend(cur_files.clone());
                     cur_files.clear();
 
-                    let new_dir = l.split(" ").nth(2).unwrap();
-                    if cur_dir.ends_with("/") {
-                        cur_dir.push_str(new_dir);
-                    } else {
-                        cur_dir.push_str("/");
-                        cur_dir.push_str(new_dir);
-                    }
+                    cur_dir = new_directory(&l.trim().replace("$ ", ""), &cur_dir);
                 }
             }
         } else {
@@ -204,4 +243,73 @@ fn compute_size(
 enum DirOrFile {
     Dir(String),
     File(String, u32),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::new_directory;
+    use super::previous_directory;
+
+    #[test]
+    fn current_directory_empty_and_dir_slash() {
+        let result = new_directory("cd /", "");
+
+        assert_eq!(result, "/");
+    }
+
+    #[test]
+    fn current_directory_empty_and_dir_not_slash() {
+        let result = new_directory("cd b", "");
+
+        assert_eq!(result, "/b");
+    }
+
+    #[test]
+    fn current_directory_slash_and_dir_not_empty() {
+        let result = new_directory("cd b", "/");
+
+        assert_eq!(result, "/b");
+    }
+
+    #[test]
+    fn current_directory_slash_something_and_dir_not_empty() {
+        let result = new_directory("cd b", "/a");
+
+        assert_eq!(result, "/a/b");
+    }
+
+    #[test]
+    fn previous_directory_current_dir_empty() {
+        let result = previous_directory("");
+
+        assert_eq!(result, "/");
+    }
+
+    #[test]
+    fn previous_directory_current_dir_slash() {
+        let result = previous_directory("/");
+
+        assert_eq!(result, "/");
+    }
+
+    #[test]
+    fn previous_directory_current_dir_slash_something() {
+        let result = previous_directory("/b");
+
+        assert_eq!(result, "/");
+    }
+
+    #[test]
+    fn previous_directory_slash_something_slash_sometthing() {
+        let result = previous_directory("/a/b");
+
+        assert_eq!(result, "/a");
+    }
+
+    #[test]
+    fn previous_directory_slash_something_slash_sometthing_slash_something() {
+        let result = previous_directory("/a/b/c");
+
+        assert_eq!(result, "/a/b");
+    }
 }
