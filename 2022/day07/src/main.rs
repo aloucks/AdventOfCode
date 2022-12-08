@@ -1,12 +1,25 @@
-use std::collections::HashMap;
+#![warn(dead_code)]
+use std::{collections::HashMap, fs::read_to_string};
 
 fn main() -> utility::Result<()> {
     let input_path = utility::get_input_path()?;
-    let input_data = utility::get_file_as_vec_string(&input_path)?;
+    //let input_data = utility::get_file_as_vec_string(&input_path)?;
+    // parse_2(&input_data);
 
-    parse_2(&input_data);
+    let input_contents = read_to_string(&input_path)?;
+
+    parse_3(&input_contents);
 
     Ok(())
+}
+
+fn parse_3(input: &str) {
+    let commands: Vec<Vec<&str>> = input
+        .split('$')
+        .skip(1)
+        .map(|c| c.trim().split('\n').collect::<Vec<&str>>())
+        .collect();
+    println!("{:#?}", commands);
 }
 
 fn parse_1(input: &Vec<String>) {
