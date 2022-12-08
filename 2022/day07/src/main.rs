@@ -34,16 +34,11 @@ fn parse_3(input: &str) {
             let files: Vec<_> = c[1..]
                 .iter()
                 .map(|e| {
-                    let parts = e.split_once(" ").unwrap();
+                    let parts = e.split_once(' ').unwrap();
 
                     match parts.0 {
-                        "dir" => DirOrFile::Dir {
-                            0: String::from(parts.1),
-                        },
-                        _ => DirOrFile::File {
-                            0: String::from(parts.1),
-                            1: parts.0.parse().unwrap(),
-                        },
+                        "dir" => DirOrFile::Dir(String::from(parts.1)),
+                        _ => DirOrFile::File(String::from(parts.1), parts.0.parse().unwrap()),
                     }
                 })
                 .collect();
@@ -87,14 +82,14 @@ fn new_directory(input: &str, current_directory: &str) -> String {
     }
 
     let mut result = String::from(current_directory);
-    result.push_str("/");
+    result.push('/');
     result.push_str(dir);
 
     result
 }
 
 fn previous_directory(current_directory: &str) -> String {
-    let parts = current_directory.trim().split("/").collect::<Vec<&str>>();
+    let parts = current_directory.trim().split('/').collect::<Vec<&str>>();
     let result = parts[0..parts.len() - 1].join("/");
 
     if result.is_empty() {
@@ -117,7 +112,7 @@ fn compute_size(
             DirOrFile::Dir(dir) => {
                 let mut new_dir = String::from(path);
                 if path != "/" {
-                    new_dir.push_str("/");
+                    new_dir.push('/');
                 }
                 new_dir.push_str(dir);
                 compute_size(tree, sizes, &new_dir);
