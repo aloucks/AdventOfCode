@@ -72,69 +72,6 @@ fn previous_directory(current_directory: &str) -> String {
     result
 }
 
-fn parse_1(input: &Vec<String>) {
-    let mut tree: HashMap<String, Vec<(u32, String)>> = HashMap::new();
-
-    let mut cur_dir = String::from("/");
-    let mut cur_files: Vec<(u32, String)> = vec![];
-
-    let mut cur_command = String::from("$ ls");
-    let mut prev_command = String::from("");
-
-    input[2..input.len()].iter().for_each(|l| {
-        if l.starts_with("$") {
-            prev_command = cur_command.clone();
-            cur_command = l.clone();
-
-            if l.starts_with("$ ls") {}
-
-            if l.starts_with("$ cd") {
-                println!("cur_command: {}", cur_command);
-                println!("cur_dir: {}", cur_dir);
-                println!("files: {:?}", cur_files);
-
-                if l.contains("..") {
-                    if prev_command == "$ ls" {
-                        tree.insert(cur_dir.clone(), cur_files.clone());
-                        cur_files.clear();
-                    }
-
-                    let parts = cur_dir.split("/").collect::<Vec<&str>>();
-                    cur_dir = parts[0..parts.len() - 1].join("/");
-
-                    if cur_dir == "" {
-                        cur_dir = String::from("/");
-                    }
-                } else {
-                    tree.insert(cur_dir.clone(), cur_files.clone());
-                    cur_files.clear();
-
-                    let new_dir = l.split(" ").nth(2).unwrap();
-                    if cur_dir.ends_with("/") {
-                        cur_dir.push_str(new_dir);
-                    } else {
-                        cur_dir.push_str("/");
-                        cur_dir.push_str(new_dir);
-                    }
-                }
-            }
-        } else {
-            if !l.starts_with("dir") {
-                let parts = l.split_once(" ").unwrap();
-                let cur_file: (u32, String) = (parts.0.parse().unwrap(), String::from(parts.1));
-                cur_files.push(cur_file);
-            }
-        }
-    });
-
-    tree.insert(cur_dir.clone(), cur_files.clone());
-    cur_files.clear();
-
-    println!("{:#?}", tree);
-
-    for k in tree.keys() {}
-}
-
 fn parse_2(input: &Vec<String>) {
     let mut tree: HashMap<String, Vec<DirOrFile>> = HashMap::new();
 
