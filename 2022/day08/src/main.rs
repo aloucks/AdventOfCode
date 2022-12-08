@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 fn main() -> utility::Result<()> {
     let input_path = utility::get_input_path()?;
     let input_data = utility::get_file_as_vec_string(&input_path)?;
@@ -17,41 +19,32 @@ fn parse_1(input: &[String]) {
         })
         .collect();
 
-    let width = trees[0].len();
-    let height = trees.len();
-
+    let mut max = (0_usize, 0_usize, 0_u32);
     let mut visible = 0;
 
-    let mut max_score = 0;
-    let mut max_w = 0;
-    let mut max_h = 0;
-
-    for h in 0..height {
-        for w in 0..width {
-            let score = calculate_scenic_score(&trees, h, w);
-            if score >= max_score {
-                max_score = score;
-                max_w = w;
-                max_h = h;
-            }
-
-            if h == 0 || h == height - 1 || w == 0 || w == width - 1 {
-                visible += 1;
-                continue;
-            }
-
-            if is_visible(&trees, h, w) {
+    (0..trees.len())
+        .cartesian_product(0..trees[0].len())
+        .into_iter()
+        .for_each(|x| {
+            if is_visible(&trees, x.0, x.1) {
                 visible += 1;
             }
-        }
-    }
+
+            let score = calculate_scenic_score(&trees, x.0, x.1);
+            if score >= max.2 {
+                max = (x.0, x.1, score);
+            }
+        });
 
     println!("{}", visible);
-
-    println!("{},{} => {}", max_h, max_w, max_score);
+    println!("{:#?}", max);
 }
 
 fn is_visible(trees: &Vec<Vec<u32>>, h: usize, w: usize) -> bool {
+    if h == 0 || h == trees.len() - 1 || w == 0 || w == trees[h].len() - 1 {
+        return true;
+    }
+
     let val = trees[h][w];
 
     let left = (0..w).any(|c| trees[h][c] >= val);
