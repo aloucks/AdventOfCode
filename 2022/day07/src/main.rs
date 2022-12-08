@@ -3,17 +3,14 @@ use std::{collections::HashMap, fs::read_to_string};
 
 fn main() -> utility::Result<()> {
     let input_path = utility::get_input_path()?;
-    let input_data = utility::get_file_as_vec_string(&input_path)?;
-
-    parse_2(&input_data);
-
     let input_contents = read_to_string(&input_path)?;
-    //parse_3(&input_contents);
+    parse_3(&input_contents);
 
     Ok(())
 }
 
 fn parse_3(input: &str) {
+    let mut tree: HashMap<String, Vec<DirOrFile>> = HashMap::new();
     let mut current_directory = String::new();
 
     let commands: Vec<Vec<&str>> = input
@@ -26,19 +23,54 @@ fn parse_3(input: &str) {
         let command = c[0].trim();
 
         if command.starts_with("cd") {
-            println!("previous_directory: {}", &current_directory);
-
             if command == "cd .." {
                 current_directory = previous_directory(&current_directory);
             } else {
                 current_directory = new_directory(command, &current_directory);
             }
+        }
 
-            println!("current_directory: {}", &current_directory);
+        if command == "ls" {
+            let files: Vec<_> = c[1..]
+                .iter()
+                .map(|e| {
+                    let parts = e.split_once(" ").unwrap();
+
+                    match parts.0 {
+                        "dir" => DirOrFile::Dir {
+                            0: String::from(parts.1),
+                        },
+                        _ => DirOrFile::File {
+                            0: String::from(parts.1),
+                            1: parts.0.parse().unwrap(),
+                        },
+                    }
+                })
+                .collect();
+
+            tree.insert(current_directory.clone(), files);
         }
     });
 
-    // println!("{:#?}", commands2);
+    let mut sizes = HashMap::new();
+
+    for k in tree.keys() {
+        compute_size(&tree, &mut sizes, k);
+    }
+
+    let p1: u32 = sizes.iter().filter(|s| s.1 <= &100000).map(|s| s.1).sum();
+
+    println!("p1: {}", p1);
+
+    let used = sizes["/"];
+    let p2 = sizes
+        .iter()
+        .filter(|s| used - s.1 <= 40000000)
+        .map(|s| s.1)
+        .min()
+        .unwrap();
+
+    println!("p2: {}", p2);
 }
 
 fn new_directory(input: &str, current_directory: &str) -> String {
@@ -70,84 +102,6 @@ fn previous_directory(current_directory: &str) -> String {
     }
 
     result
-}
-
-fn parse_2(input: &Vec<String>) {
-    let mut tree: HashMap<String, Vec<DirOrFile>> = HashMap::new();
-
-    let mut cur_dir = String::from("/");
-    let mut cur_files: Vec<DirOrFile> = vec![];
-
-    let mut cur_command = String::from("$ ls");
-    let mut prev_command = String::from("");
-
-    input[2..input.len()].iter().for_each(|l| {
-        if l.starts_with("$") {
-            prev_command = cur_command.clone();
-            cur_command = l.clone();
-
-            if l.starts_with("$ ls") {}
-
-            if l.starts_with("$ cd") {
-                println!("cur_command: {}", cur_command);
-                println!("cur_dir: {}", cur_dir);
-                println!("files: {:?}", cur_files);
-
-                if l.contains("..") {
-                    if prev_command == "$ ls" {
-                        tree.entry(cur_dir.clone())
-                            .or_insert(Vec::new())
-                            .extend(cur_files.clone());
-                        cur_files.clear();
-                    }
-
-                    cur_dir = previous_directory(&cur_dir);
-                } else {
-                    tree.entry(cur_dir.clone())
-                        .or_insert(Vec::new())
-                        .extend(cur_files.clone());
-                    cur_files.clear();
-
-                    cur_dir = new_directory(&l.trim().replace("$ ", ""), &cur_dir);
-                }
-            }
-        } else {
-            let parts = l.split_once(" ").unwrap();
-
-            match parts.0 {
-                "dir" => cur_files.push(DirOrFile::Dir {
-                    0: String::from(parts.1),
-                }),
-                _ => cur_files.push(DirOrFile::File {
-                    0: String::from(parts.1),
-                    1: parts.0.parse().unwrap(),
-                }),
-            }
-        }
-    });
-
-    tree.entry(cur_dir.clone())
-        .or_insert(Vec::new())
-        .extend(cur_files.clone());
-
-    let mut sizes = HashMap::new();
-
-    for k in tree.keys() {
-        compute_size(&tree, &mut sizes, k);
-    }
-
-    let s: u32 = sizes.iter().filter(|s| s.1 <= &100000).map(|s| s.1).sum();
-
-    let used = sizes["/"];
-    let t = sizes
-        .iter()
-        .filter(|s| used - s.1 <= 40000000)
-        .map(|s| s.1)
-        .min()
-        .unwrap();
-
-    println!("{}", used);
-    println!("{}", t);
 }
 
 fn compute_size(
