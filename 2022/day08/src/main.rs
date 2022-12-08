@@ -1,4 +1,4 @@
-use itertools::Itertools;
+use itertools::{FoldWhile, Itertools};
 
 fn main() -> utility::Result<()> {
     let input_path = utility::get_input_path()?;
@@ -65,22 +65,35 @@ fn calculate_scenic_score(trees: &Vec<Vec<u32>>, h: usize, w: usize) -> u32 {
 
     let val = trees[h][w];
 
-    let mut up = 0;
+    // let mut up = 0;
     let mut down = 0;
     let mut left = 0;
     let mut right = 0;
 
     // up
-    for u in (0..h).rev() {
-        let check = trees[u][w];
+    // for u in (0..h).rev() {
+    //     let check = trees[u][w];
 
-        if check >= val {
-            up += 1;
-            break;
-        }
+    //     if check >= val {
+    //         up += 1;
+    //         break;
+    //     }
 
-        up += 1;
-    }
+    //     up += 1;
+    // }
+
+    let up = (0..h)
+        .rev()
+        .fold_while(0, |acc, u| {
+            let check = trees[u][w];
+            let up = acc + 1;
+            if check >= val {
+                FoldWhile::Continue(up)
+            } else {
+                FoldWhile::Done(up)
+            }
+        })
+        .into_inner();
 
     for d in trees.iter().skip(h + 1) {
         let check = d[w];
